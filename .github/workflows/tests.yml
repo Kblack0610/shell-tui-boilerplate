@@ -1,0 +1,46 @@
+name: Shell TUI Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      
+    - name: Set up test environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bash shellcheck
+    
+    - name: Run shellcheck
+      run: |
+        shellcheck tui.sh
+        shellcheck lib/*.sh
+        shellcheck examples/*.sh
+        shellcheck tests/*.sh
+      
+    - name: Make scripts executable
+      run: |
+        chmod +x tui.sh
+        chmod +x examples/*.sh
+        chmod +x tests/*.sh
+      
+    - name: Run tests
+      run: |
+        cd tests
+        ./run_all_tests.sh
+        
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-logs
+        path: |
+          tests/summary.log
+          tests/test_output.log
